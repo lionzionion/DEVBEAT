@@ -1,99 +1,71 @@
 <div align="center">
 
-# 🎧 DEVBEAT
+# 🎧 DEVBEAT 2.0
 
-### Seu código tem ritmo. Sua playlist também.
+### Seu código tem ritmo. Sua biblioteca também.
 
-**Um player de música feito para quem cria, estuda e vive tecnologia.**
+**Player musical para desenvolvedores — com descoberta de faixas, CodeFlow, playlists, histórico e estrutura para contas sincronizadas.**
 
-[🌐 Acessar versão web](https://lionzionion.github.io/DEVBEAT/) · [💻 GitHub do desenvolvedor](https://github.com/lionzionion)
-
-![JavaScript](https://img.shields.io/badge/JavaScript-ES_Modules-F7DF1E?logo=javascript&logoColor=000)
-![HTML5](https://img.shields.io/badge/HTML5-Web-E34F26?logo=html5&logoColor=fff)
-![CSS3](https://img.shields.io/badge/CSS3-Responsive-1572B6?logo=css&logoColor=fff)
-![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub_Pages-222?logo=github&logoColor=fff)
+[🌐 Abrir aplicação](https://lionzionion.github.io/DEVBEAT/) · [💻 Código-fonte](https://github.com/lionzionion/DEVBEAT) · [🎼 Catálogo musical](https://audius.co/)
 
 </div>
 
----
+## O que funciona agora
 
-## 🚀 Sobre o projeto
+- 🎵 **Busca de músicas no Audius**, tendências, categorias e paginação para explorar mais resultados.
+- 🎛️ **Player web**: reprodução, pausa, fila, faixas anteriores e próximas, repetição e embaralhamento.
+- 💻 **CodeFlow**: cinco modos para acompanhar programação e estudo.
+- ❤️ **Favoritos** e **múltiplas playlists** (criar, selecionar, excluir).
+- 🕒 **Histórico** de até 80 faixas reproduzidas, com última faixa e posição de reprodução armazenadas.
+- 📱 Interface responsiva e uso como visitante sem cadastro.
 
-**DEVBEAT** é um aplicativo web de música pensado para desenvolvedores. Combina descoberta de faixas, reprodução de áudio e modos **CodeFlow** em uma interface responsiva, projetada para acompanhar sessões de programação e estudo.
+**Sem um projeto Supabase configurado, as coleções são mantidas somente neste navegador.** Não há contas ativas ou sincronização remota ainda.
 
-O projeto é uma edição web independente do protótipo original de aplicativo nativo. Esta versão usa o catálogo público do **Audius** e roda diretamente no navegador, sem exigir cadastro.
+## Contas e sincronização: integração preparada
 
-## ✨ Funcionalidades
+O frontend inclui `identity.mjs` para autenticação via e-mail/senha, recuperação de senha e biblioteca por usuário. Um esquema PostgreSQL com políticas **Row Level Security** isola a biblioteca individual. **O recurso só será habilitado depois que houver um projeto Supabase exclusivo do DEVBEAT, com a configuração pública em `config.mjs`.**
 
-- 🔎 **Explorar músicas:** busca de faixas e seção de tendências no catálogo público Audius.
-- ▶️ **Player:** reproduzir, pausar, avançar, voltar, ajustar volume e acompanhar progresso.
-- 🔀 **Modos de reprodução:** embaralhamento e repetição.
-- 💻 **CodeFlow:** cinco modos musicais para diferentes momentos de programação.
-- ❤️ **Sua biblioteca:** favoritos e playlists salvos localmente no navegador.
-- 📱 **Design responsivo:** interface adaptada para desktop e dispositivos móveis.
-- 🆓 **Acesso simples:** sem conta obrigatória e sem infraestrutura de servidor própria.
+Veja [o passo a passo de configuração](./supabase/SETUP.md).
 
-## 🛠️ Tecnologias
+> Nunca inclua chaves secretas, `service_role`, senha do banco ou arquivos `.env` com credenciais no GitHub. O frontend utiliza somente a *publishable key* pública e políticas RLS.
 
-| Camada | Tecnologia |
-| --- | --- |
-| Interface | HTML5, CSS3, JavaScript (ES Modules) |
-| Reprodução | HTML Audio API |
-| Catálogo musical | API pública Audius |
-| Persistência local | `localStorage` |
-| Publicação | GitHub Pages |
-| Testes | Node.js |
+## Tecnologias
 
-## 🌐 Demonstração
+HTML5 • CSS3 • JavaScript ES Modules • Web Audio nativo (`HTMLAudioElement`) • Audius REST API • GitHub Pages • Node.js Test Runner • Supabase Auth/PostgreSQL (integração preparada)
 
-**Versão própria do projeto:** [Abrir DEVBEAT Web](https://lionzionion.github.io/DEVBEAT/) (disponível após habilitar GitHub Pages em Settings → Pages → Source: GitHub Actions).
-
-**Versão de referência no portfólio:** [DEVBEAT Web](https://lionzionion.github.io/portofolio/devbeat/).
-
-## ⚙️ Executar localmente
-
-Como a edição web é composta por arquivos estáticos, você pode servir o projeto com um servidor HTTP local:
+## Executar e testar localmente
 
 ```bash
 npx serve .
-```
-
-Abra no navegador o endereço indicado pelo servidor. Para executar os testes e validações do projeto:
-
-```bash
 npm test
 npm run check
 ```
 
-## 📁 Organização do projeto
+## Arquitetura
 
 ```text
 DEVBEAT/
-├── index.html
-├── styles.css
-├── app.js
-├── catalog.mjs
-├── manifest.webmanifest
-├── package.json
-├── tests/
-├── .github/workflows/pages.yml
-├── .nojekyll
-├── LICENSE
-└── README.md
+├─ index.html                  interface web
+├─ app.js                      player, views, playlists, histórico
+├─ styles.css                  tema responsivo
+├─ catalog.mjs                 cliente Audius, busca e paginação
+├─ identity.mjs                Auth, sessão e sync (opcional)
+├─ config.mjs                  configuração pública do Supabase
+├─ manifest.webmanifest        web app
+├─ supabase/
+│  ├─ schema.sql               tabelas e políticas RLS
+│  └─ SETUP.md                 ativação guiada
+├─ tests/                      testes de catálogo e biblioteca
+└─ .github/workflows/pages.yml CI/CD GitHub Pages
 ```
 
-## ⚠️ Limitações atuais
+## Limitações
 
-- A disponibilidade de músicas, streams e permissões CORS depende do serviço **Audius**; nem todas as faixas necessariamente serão reproduzidas.
-- Favoritos, playlists e nome de exibição ficam armazenados no navegador: **não há sincronização entre dispositivos**.
-- Esta edição **não** incorpora o catálogo ou as funcionalidades nativas do Spotube nem um backend de autenticação.
+- Disponibilidade das faixas e permissão de streaming dependem do Audius. Nem todas as faixas podem ser reproduzidas.
+- A versão web não incorpora o Spotube nem o catálogo comercial do Spotify.
+- A sincronização exige Supabase ativo e testado; ainda não está ativada por padrão.
+- Sem banco conectado, a biblioteca fica apenas no dispositivo e pode ser perdida se os dados do navegador forem apagados.
 
-## 🧭 Próximos passos
+## Licença
 
-Ideias para evolução do projeto: recomendações mais inteligentes, integração com Discord, experiências sociais e sincronização de biblioteca entre dispositivos. **Esses recursos ainda não fazem parte da versão atual.**
-
-## 👨‍💻 Desenvolvimento
-
-Projeto independente de [Leandro Dias](https://github.com/lionzionion), desenvolvido como parte de seu portfólio de aplicações e experimentação com produtos digitais.
-
-**Catálogo e streams:** [Audius](https://audius.co/).
+MIT · [Leandro Dias](https://github.com/lionzionion). Músicas fornecidas por [Audius](https://audius.co/).

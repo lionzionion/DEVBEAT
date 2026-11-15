@@ -20,3 +20,8 @@ test('falha no primeiro host usa host alternativo',async()=>{
   assert.equal(urls.length,2);assert.deepEqual(tracks,[]);assert.match(urls[1],/query=lofi/);
 });
 test('busca muito curta é recusada',async()=>{await assert.rejects(fetchCatalog({type:'search',query:'x'}),/2 caracteres/);});
+test('paginação consulta músicas seguintes do Audius',async()=>{
+ let requested='';await fetchCatalog({type:'search',query:'ambient',limit:30,offset:60},async url=>{requested=url;return {ok:true,json:async()=>({data:[]})}});
+ assert.match(requested,/offset=60/);
+ assert.match(requested,/limit=30/);
+});

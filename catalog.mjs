@@ -27,11 +27,12 @@ export function trackStreamUrl(id) {
   return `${API_ROOTS[0]}/tracks/${encodeURIComponent(value)}/stream?app_name=${APP_NAME}`;
 }
 
-export async function fetchCatalog({type='trending',query='',limit=24}={},fetcher=globalThis.fetch) {
+export async function fetchCatalog({type='trending',query='',limit=24,offset=0}={},fetcher=globalThis.fetch) {
   const kind=type==='search'?'search':'trending';
   const term=String(query).trim().slice(0,90);
   if(kind==='search'&&term.length<2)throw new Error('Digite ao menos 2 caracteres para pesquisar');
   const qp=new URLSearchParams({app_name:APP_NAME,limit:String(Math.min(30,Math.max(1,Number(limit)||24)))});
+  qp.set('offset',String(Math.min(1000,Math.max(0,Number(offset)||0))));
   if(kind==='search')qp.set('query',term);else qp.set('time','week');
   let lastError;
   for(const root of API_ROOTS){

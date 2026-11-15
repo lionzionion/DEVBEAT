@@ -3,3 +3,10 @@
 
 [hidden]{display:none!important}
 .track-title{background:transparent;border:0;padding:0;cursor:pointer;font-family:inherit}
+
+/* DEVBEAT 2.0 — identidade, playlists múltiplas e descoberta. */
+.account-button{border:1px solid #405740;background:#1c2c25;color:#b8ff93;padding:9px 13px;border-radius:9px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}.account-button:hover{border-color:#a1ff5f}
+.account-dialog form{display:flex;flex-direction:column;gap:10px}.account-dialog form p{margin:5px 0 12px}.account-dialog form label{margin-top:5px;margin-bottom:0}.account-dialog .text-link{background:none;border:0;color:#a1ff5f;text-align:center;font-size:12px;cursor:pointer}.account-dialog .modal-submit{margin:12px 0 2px}.account-dialog small{min-height:15px;color:#c2e3ca}
+.library-tools,.genre-filters{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:15px 0 18px}.library-tools label{font-size:12px;color:#a8b2c4}.library-tools select,.library-tools button,.genre-filters button{color:#c9d9e4;background:#1a2230;border:1px solid #364356;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px}.library-tools select{max-width:240px}.library-tools button:hover,.genre-filters button:hover{border-color:#a1ff5f;color:#a1ff5f}.genre-filters button:first-child{background:#29432a;color:#b6ff8f}
+.load-more{display:block;margin:26px auto 0;border:1px solid #4b7051;border-radius:10px;background:#1f3228;color:#a1ff5f;padding:11px 24px;cursor:pointer;font-weight:800}.load-more:disabled{opacity:.5;cursor:wait}
+@media(max-width:690px){.account-button{font-size:9px;padding:8px 9px}.library-tools select{max-width:170px}.genre-filters{gap:6px}.genre-filters button{font-size:10px;padding:7px 9px}}
