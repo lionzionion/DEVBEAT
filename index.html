@@ -13,9 +13,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="./styles.css"/>
+  <link rel="stylesheet" href="./styles.css?v=23"/>
   <link rel="manifest" href="./manifest.webmanifest"/>
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./app.js?v=23"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -53,7 +53,7 @@
       <main class="page-content" id="pageContent">
         <section class="hero" id="hero">
           <div class="hero-copy">
-            <div class="eyebrow"><span class="eyebrow-square"></span> THE SOUNDTRACK OF BUILDERS <span class="eyebrow-line"></span> V2.0</div>
+            <div class="eyebrow"><span class="eyebrow-square"></span> THE SOUNDTRACK OF BUILDERS <span class="eyebrow-line"></span> V2.3</div>
             <h1>Seu próximo <em>grande código</em> começa com o beat certo<span class="period">.</span></h1>
             <p>Um espaço para quem transforma café em projetos, ideias em produto e bugs em conquistas. Coloque o fone e encontre o seu flow.</p>
             <div class="hero-actions"><button class="btn-secondary" id="resumeButton" hidden>↺ Retomar última música</button><button class="btn-primary" id="startFlowButton"><span>▶</span> Começar a ouvir</button><button class="btn-secondary" id="exploreModesButton">Explorar CodeFlow <span>↗</span></button></div>
@@ -68,14 +68,14 @@
     </div>
 
     <div class="player" id="player" role="region" aria-label="Reprodutor de música">
-      <div class="player-track"><button type="button" id="playerArt" class="player-art player-art-button" aria-label="Abrir player expandido" title="Ver tocando agora"><span>♫</span></button><div class="player-info"><strong id="playerTitle">Escolha uma música</strong><span id="playerArtist">Seu flow começa aqui</span><span class="mini-spectrum" aria-hidden="true"><i style="--bar:0"></i><i style="--bar:1"></i><i style="--bar:2"></i><i style="--bar:3"></i><i style="--bar:4"></i><i style="--bar:5"></i><i style="--bar:6"></i></span></div><button class="player-heart" id="playerLike" aria-label="Adicionar às favoritas" title="Favoritar">♡</button></div>
+      <div class="player-track"><button type="button" id="playerArt" class="player-art player-art-button" aria-label="Abrir player expandido" title="Ver tocando agora"><span>♫</span></button><div class="player-info"><strong id="playerTitle">Escolha uma música</strong><span id="playerArtist">Seu flow começa aqui</span><span class="mini-spectrum" aria-hidden="true"><i style="--bar:0"></i><i style="--bar:1"></i><i style="--bar:2"></i><i style="--bar:3"></i><i style="--bar:4"></i><i style="--bar:5"></i><i style="--bar:6"></i></span></div><button class="player-heart" id="playerLike" aria-label="Adicionar às favoritas" title="Favoritar">♡</button><button type="button" id="queueButton" class="player-queue-button" aria-label="Abrir fila de reprodução" title="Ver fila de reprodução">☷ <span id="queueBadge" class="queue-badge" hidden>0</span></button></div>
       <div class="player-center"><div class="player-controls"><button id="shuffleButton" title="Embaralhar" aria-label="Embaralhar">⇄</button><button id="previousButton" title="Anterior" aria-label="Música anterior">◀◀</button><button class="play-toggle" id="playButton" aria-label="Reproduzir ou pausar">▶</button><button id="nextButton" title="Próxima" aria-label="Próxima música">▶▶</button><button id="repeatButton" title="Repetir" aria-label="Repetir">↻</button></div><div class="progress-line"><span id="currentTime">0:00</span><input type="range" id="progress" min="0" max="100" value="0" step="0.1" aria-label="Progresso da música"/><span id="duration">0:00</span></div></div>
       <div class="player-right"><button type="button" class="expand-player-control" id="expandPlayerButton" title="Abrir player expandido" aria-label="Abrir player expandido">⤢</button><span class="playing-source">STREAMING VIA AUDIUS</span><button id="playlistCurrentButton" title="Adicionar à playlist" aria-label="Adicionar à playlist">＋</button><span class="volume-icon">♫</span><input type="range" min="0" max="100" value="80" id="volume" aria-label="Volume"/></div>
     </div>
   </div>
   <dialog id="nowPlayingDialog" class="nowplaying-dialog" aria-labelledby="npTitle">
     <div class="np-shell">
-      <header class="np-top"><span class="np-brand"><span class="np-brand-dot"></span> DEVBEAT <small>/ TOCANDO AGORA</small></span><button type="button" class="np-close" id="npCloseButton" aria-label="Fechar player expandido">✕</button></header>
+      <header class="np-top"><span class="np-brand"><span class="np-brand-dot"></span> DEVBEAT <small>/ TOCANDO AGORA</small></span><div class="np-top-actions"><button type="button" id="focusModeButton" class="np-focus-toggle" aria-pressed="false">◎ Foco 25 min</button><button type="button" class="np-close" id="npCloseButton" aria-label="Fechar player expandido">✕</button></div></header>
       <div class="np-cover-scene" aria-hidden="true"><div class="np-glow"></div><div class="np-record" id="npArtwork"><span>♫</span></div><span class="np-record-hole"></span></div>
       <div class="np-spectrum" aria-hidden="true"><i style="--bar:0;--h:32%"></i><i style="--bar:1;--h:63%"></i><i style="--bar:2;--h:42%"></i><i style="--bar:3;--h:92%"></i><i style="--bar:4;--h:56%"></i><i style="--bar:5;--h:74%"></i><i style="--bar:6;--h:28%"></i><i style="--bar:7;--h:81%"></i><i style="--bar:8;--h:52%"></i><i style="--bar:9;--h:99%"></i><i style="--bar:10;--h:47%"></i><i style="--bar:11;--h:84%"></i><i style="--bar:12;--h:34%"></i><i style="--bar:13;--h:70%"></i><i style="--bar:14;--h:43%"></i><i style="--bar:15;--h:89%"></i><i style="--bar:16;--h:55%"></i><i style="--bar:17;--h:36%"></i></div>
       <section class="np-song">
@@ -95,10 +95,23 @@
         <button type="button" id="npNext" class="np-secondary" aria-label="Próxima faixa">▶▶</button>
         <button type="button" id="npRepeat" class="np-secondary" aria-label="Repetir" title="Repetir">↻</button>
       </nav>
+      <div id="focusTools" class="np-focus-tools" hidden><div><span class="focus-caption">SESSÃO DE CONCENTRAÇÃO</span><strong id="focusClock" aria-live="off">25:00</strong></div><div class="focus-buttons"><button type="button" id="focusTimerToggle">Pausar</button><button type="button" id="focusTimerReset">Reiniciar</button></div></div>
       <div class="np-footer">
         <button type="button" id="npLike" class="np-like" aria-label="Adicionar faixa às favoritas">♡ <span>Favoritar</span></button>
-        <span>AUDIUS · STREAMING OFICIAL</span>
+        <button type="button" id="npQueueButton" class="np-queue-button" aria-label="Abrir fila de reprodução">☷ Fila</button><span>AUDIUS · STREAMING OFICIAL</span>
       </div>
+    </div>
+  </dialog>
+  <dialog id="queueDialog" class="queue-dialog" aria-labelledby="queueTitle">
+    <div class="queue-shell">
+      <header class="queue-header">
+        <div><div class="queue-kicker">SUA PRÓXIMA SESSÃO</div><h2 id="queueTitle">Fila de reprodução <span id="queueCount">0 próximas</span></h2></div>
+        <button id="queueCloseButton" type="button" class="queue-close" aria-label="Fechar fila">✕</button>
+      </header>
+      <div class="queue-now"><div class="queue-small-label">TOCANDO AGORA</div><div id="queueCurrent" aria-live="polite"></div></div>
+      <div class="queue-upcoming-heading"><strong>Próximas faixas</strong><button id="queueClearButton" type="button">Limpar próximas</button></div>
+      <div id="queueList" class="queue-list" aria-label="Músicas agendadas"></div>
+      <footer class="queue-footer">Use ↳ nas músicas para ouvir em seguida. Reordene usando as setas.</footer>
     </div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>

@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎧 DEVBEAT 2.0
+# 🎧 DEVBEAT 2.3
 
 ### Seu código tem ritmo. Sua biblioteca também.
 
@@ -18,6 +18,8 @@
 - ❤️ **Favoritos** e **múltiplas playlists** (criar, selecionar, excluir).
 - 🕒 **Histórico** de até 80 faixas reproduzidas, com última faixa e posição de reprodução armazenadas.
 - 📱 Interface responsiva e uso como visitante sem cadastro.
+- ☷ **Fila de reprodução editável:** botão ↳ para ouvir em seguida; abrir fila pela barra inferior ou pelo player expandido; subir, descer, remover e limpar faixas futuras.
+- ◎ **Modo foco de 25 minutos:** experiência imersiva no player expandido, com cronômetro, pausa e reinício. O timer não modifica o streaming do Audius.
 - 🎚️ **Player expandido:** clique na capa para abrir a tela Tocando Agora com vinil animado, controles acessíveis e barra de progresso sincronizada.
 - ✨ **Microanimações:** capa, indicadores de execução e espectro visual sincronizado ao estado de play/pause, respeitando a preferência por movimento reduzido. O espectro é decorativo e não mede frequências reais.
 
@@ -51,6 +53,7 @@ DEVBEAT/
 ├─ app.js                      player, views, playlists, histórico
 ├─ styles.css                  tema responsivo
 ├─ catalog.mjs                 cliente Audius, busca e paginação
+├─ queue.mjs                   operações testáveis da fila
 ├─ identity.mjs                Auth, sessão e sync (opcional)
 ├─ config.mjs                  configuração pública do Supabase
 ├─ manifest.webmanifest        web app
