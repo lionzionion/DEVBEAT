@@ -1,0 +1,11 @@
+{
+  "name": "DEVBEAT — Code Your Rhythm",
+  "short_name": "DEVBEAT",
+  "description": "Música para desenvolvedores e sessões de foco.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a0d15",
+  "theme_color": "#0a0d15",
+  "icons": [],
+  "scope": "./"
+}
