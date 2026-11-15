@@ -1,7 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanLibrary, cloudConfigured, normalizeDisplayName } from '../identity.mjs';
-test('sem configuração não habilita login ou bibliotecas compartilhadas', () => assert.equal(cloudConfigured, false));
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config.mjs';
+test('frontend configurado com chave pública para login', () => {
+  assert.equal(cloudConfigured, true);
+  assert.match(SUPABASE_URL, /^https:\/\/[a-z0-9-]+\.supabase\.co$/);
+  assert.match(SUPABASE_PUBLISHABLE_KEY, /^sb_publishable_/);
+  assert.doesNotMatch(SUPABASE_PUBLISHABLE_KEY, /service_role|sb_secret_/);
+});
 test('biblioteca isolada tem playlist inicial', () => {
   const lib = cleanLibrary(null);
   assert.equal(lib.playlists.length, 1);

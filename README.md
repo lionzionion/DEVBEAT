@@ -19,11 +19,11 @@
 - 🕒 **Histórico** de até 80 faixas reproduzidas, com última faixa e posição de reprodução armazenadas.
 - 📱 Interface responsiva e uso como visitante sem cadastro.
 
-**Sem um projeto Supabase configurado, as coleções são mantidas somente neste navegador.** Não há contas ativas ou sincronização remota ainda.
+**O Supabase exclusivo do DEVBEAT já foi criado e conectado ao frontend.** O login com e-mail/senha depende também da configuração de URLs de redirecionamento e da validação real do fluxo de confirmação de e-mail no painel Supabase. Visitantes continuam usando armazenamento local.
 
-## Contas e sincronização: integração preparada
+## Contas e sincronização: conexão configurada
 
-O frontend inclui `identity.mjs` para autenticação via e-mail/senha, recuperação de senha e biblioteca por usuário. Um esquema PostgreSQL com políticas **Row Level Security** isola a biblioteca individual. O cliente guarda temporariamente alterações pendentes por conta no navegador, para permitir recuperação após falhas de conexão. **O recurso só será habilitado depois que houver um projeto Supabase exclusivo do DEVBEAT, com a configuração pública em `config.mjs`.**
+O frontend inclui `identity.mjs` para autenticação via e-mail/senha, recuperação de senha e biblioteca por usuário. Um esquema PostgreSQL com políticas **Row Level Security** isola a biblioteca individual. O cliente guarda temporariamente alterações pendentes por conta no navegador, para permitir recuperação após falhas de conexão. **Projeto Supabase DEVBEAT criado, duas tabelas com RLS implementadas e chave pública vinculada em `config.mjs`.** É necessário confirmar a Site URL e Redirect URL em Auth antes de liberar o cadastro publicamente.
 
 Veja [o passo a passo de configuração](./supabase/SETUP.md).
 
@@ -63,7 +63,7 @@ DEVBEAT/
 
 - Disponibilidade das faixas e permissão de streaming dependem do Audius. Nem todas as faixas podem ser reproduzidas.
 - A versão web não incorpora o Spotube nem o catálogo comercial do Spotify.
-- A sincronização exige Supabase ativo e testado; ainda não está ativada por padrão.
+- A conexão Supabase está ativa; a autenticação completa e a sincronização entre dispositivos ainda exigem testes com contas reais e configuração de URL de retorno.
 - Sem banco conectado, a biblioteca fica apenas no dispositivo e pode ser perdida se os dados do navegador forem apagados.
 
 ## Licença
