@@ -23,7 +23,7 @@
 
 ## Contas e sincronização: integração preparada
 
-O frontend inclui `identity.mjs` para autenticação via e-mail/senha, recuperação de senha e biblioteca por usuário. Um esquema PostgreSQL com políticas **Row Level Security** isola a biblioteca individual. **O recurso só será habilitado depois que houver um projeto Supabase exclusivo do DEVBEAT, com a configuração pública em `config.mjs`.**
+O frontend inclui `identity.mjs` para autenticação via e-mail/senha, recuperação de senha e biblioteca por usuário. Um esquema PostgreSQL com políticas **Row Level Security** isola a biblioteca individual. O cliente guarda temporariamente alterações pendentes por conta no navegador, para permitir recuperação após falhas de conexão. **O recurso só será habilitado depois que houver um projeto Supabase exclusivo do DEVBEAT, com a configuração pública em `config.mjs`.**
 
 Veja [o passo a passo de configuração](./supabase/SETUP.md).
 

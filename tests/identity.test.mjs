@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanLibrary, cloudConfigured } from '../identity.mjs';
+import { cleanLibrary, cloudConfigured, normalizeDisplayName } from '../identity.mjs';
 test('sem configuração não habilita login ou bibliotecas compartilhadas', () => assert.equal(cloudConfigured, false));
 test('biblioteca isolada tem playlist inicial', () => {
   const lib = cleanLibrary(null);
@@ -16,4 +16,10 @@ test('valida faixas e limita tamanho de histórico', () => {
 test('não aceita favoritos de outra chave ou campos inválidos', () => {
   const lib = cleanLibrary({favorites:{'1':{id:'2',title:'Errada'},'3':{id:'3',title:'Correta'}}});
   assert.deepEqual(Object.keys(lib.favorites),['3']);
+});
+
+test('nome por conta é normalizado e limitado', () => {
+  assert.equal(normalizeDisplayName('  Ana Dev  '),'Ana Dev');
+  assert.equal(normalizeDisplayName('   '),'DEV');
+  assert.equal(normalizeDisplayName('x'.repeat(60)).length,40);
 });

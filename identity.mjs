@@ -33,7 +33,7 @@ export async function authAction(action, email, password, displayName = '') {
   if (!api) throw new Error('A sincronização ainda precisa de um projeto Supabase próprio.');
   const options = { emailRedirectTo: window.location.origin + window.location.pathname };
   let response;
-  if (action === 'register') response = await api.auth.signUp({ email, password, options: { ...options, data: { display_name: displayName.slice(0, 40) } } });
+  if (action === 'register') response = await api.auth.signUp({ email, password, options: { ...options, data: { display_name: normalizeDisplayName(displayName) } } });
   else if (action === 'login') response = await api.auth.signInWithPassword({ email, password });
   else if (action === 'reset') response = await api.auth.resetPasswordForEmail(email, { redirectTo: options.emailRedirectTo });
   else throw new Error('Operação de autenticação inválida');
@@ -82,8 +82,18 @@ export async function writeCloudLibrary(userId, snapshot) {
   const { error } = await api.from('devbeat_libraries').upsert({ user_id: userId, ...library, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
   if (error) throw error;
 }
+export function normalizeDisplayName(value) {
+  const name = String(value || '').trim().slice(0, 40);
+  return name || 'DEV';
+}
+export async function readCloudProfile(userId) {
+  const api = await getCloudClient();
+  const { data, error } = await api.from('devbeat_profiles').select('display_name').eq('id', userId).maybeSingle();
+  if (error) throw error;
+  return data ? normalizeDisplayName(data.display_name) : null;
+}
 export async function saveCloudProfile(userId, displayName) {
   const api = await getCloudClient();
-  const { error } = await api.from('devbeat_profiles').upsert({ id: userId, display_name: displayName.slice(0, 40) }, { onConflict: 'id' });
+  const { error } = await api.from('devbeat_profiles').upsert({ id: userId, display_name: normalizeDisplayName(displayName) }, { onConflict: 'id' });
   if (error) throw error;
 }

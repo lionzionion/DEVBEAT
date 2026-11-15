@@ -1,7 +1,7 @@
 /* DEVBEAT Web — streaming via catálogo público Audius */
 'use strict';
 import { fetchCatalog, trackStreamUrl } from './catalog.mjs';
-import { cloudConfigured, listenToAuth, authAction, updatePassword, signOut, cleanLibrary, readCloudLibrary, writeCloudLibrary, saveCloudProfile } from './identity.mjs';
+import { cloudConfigured, listenToAuth, authAction, updatePassword, signOut, cleanLibrary, readCloudLibrary, writeCloudLibrary, readCloudProfile, saveCloudProfile, normalizeDisplayName } from './identity.mjs';
 const $ = (id) => document.getElementById(id);
 const modes = [
   { id:'deep', title:'Deep Focus', subtitle:'Concentração máxima', genre:'Ambient', query:'ambient', color:'#a1ff5f', symbol:'◎', detail:'Um ambiente sonoro para mergulhar no código.' },
@@ -28,11 +28,49 @@ if(!Array.isArray(state.playlists)||!state.playlists.length) state.playlists=[{i
 if(!state.playlists.find(p=>p.id===state.selectedPlaylistId)) state.selectedPlaylistId=state.playlists[0].id;
 state.playlist=state.playlists.find(p=>p.id===state.selectedPlaylistId).tracks;
 let guestLibrary = cleanLibrary({favorites:state.likes,playlists:state.playlists,history:state.history,playback:state.playback});
+let guestName = state.name;
+let pendingCloudSave = null;
+const pendingKey = (userId) => 'pending:' + userId;
+function canEditLibrary() {
+  if (state.user && !state.cloudReady) { flash('Sua biblioteca está carregando. Tente novamente.'); return false; }
+  return true;
+}
+function clearSessionPlayer() {
+  state.current = null; state.queue = []; state.index = -1; state.isPlaying = false;
+  audio.pause(); audio.removeAttribute('src'); audio.load(); updatePlayer();
+}
 const audio = $('audio'); audio.volume=.8;
 function snapshot(){return cleanLibrary({favorites:state.likes,playlists:state.playlists,history:state.history,playback:state.playback});}
 function persistGuest(){if(state.user)return;const s=snapshot();guestLibrary=s;storage.set('likes',s.favorites);storage.set('playlists',s.playlists);storage.set('selectedPlaylistId',state.selectedPlaylistId);storage.set('playlist',state.playlist);storage.set('history',s.history);storage.set('playback',s.playback);}
-async function flushCloud(){if(!state.user||!state.cloudReady)return;const userId=state.user.id;try{await writeCloudLibrary(userId,snapshot());}catch(e){flash('Sincronização pendente: '+String(e.message||'Erro de rede'));}}
-function persistLibrary(){if(!state.user){persistGuest();return;}if(!state.cloudReady)return;clearTimeout(state.syncTimer);state.syncTimer=setTimeout(flushCloud,750);}
+async function flushCloud() {
+  if (!state.user || !state.cloudReady) return true;
+  const userId = state.user.id;
+  const pending = pendingCloudSave;
+  if (!pending || pending.userId !== userId) return true;
+  try {
+    await writeCloudLibrary(userId, pending.library);
+    // Não descarte alterações feitas enquanto a requisição anterior estava em andamento.
+    if (pendingCloudSave === pending) {
+      pendingCloudSave = null;
+      storage.set(pendingKey(userId), null);
+    } else if (pendingCloudSave?.userId === userId) {
+      clearTimeout(state.syncTimer);
+      state.syncTimer = setTimeout(flushCloud, 750);
+    }
+    return true;
+  } catch (e) {
+    flash('Biblioteca pendente de sincronização: ' + String(e.message || 'Erro de rede'));
+    return false;
+  }
+}
+function persistLibrary() {
+  if (!state.user) { persistGuest(); return; }
+  if (!state.cloudReady) return;
+  pendingCloudSave = { userId: state.user.id, library: snapshot(), savedAt: Date.now() };
+  storage.set(pendingKey(state.user.id), pendingCloudSave);
+  clearTimeout(state.syncTimer);
+  state.syncTimer = setTimeout(flushCloud, 750);
+}
 function adoptLibrary(s){const lib=cleanLibrary(s);state.likes=lib.favorites;state.playlists=lib.playlists;state.selectedPlaylistId=state.playlists[0].id;state.playlist=state.playlists[0].tracks;state.history=lib.history;state.playback=lib.playback;updateResume();renderPlaylistSelect();renderTracks();updatePlayer();}
 function updateResume(){$('resumeButton').hidden=!state.playback?.track?.id;}
 function renderPlaylistSelect(){const sel=$('playlistSelect');if(!sel)return;sel.innerHTML=state.playlists.map(p=>'<option value="'+safe(p.id)+'">'+safe(p.name)+'</option>').join('');sel.value=state.selectedPlaylistId;}
@@ -78,8 +116,8 @@ function selectMode(modeId){
  const mode=modes.find(m=>m.id===modeId);if(!mode)return;state.view='codeflow';state.mode=modeId;renderNav();renderModes();$('hero').hidden=true;$('flowSection').hidden=false;$('sidebar').classList.remove('open');$('menuButton').setAttribute('aria-expanded','false');$('searchInput').value='';
  $('miniSessionTitle').textContent=mode.title;setHeading('CODEFLOW • '+mode.title.toUpperCase(),safe(mode.title)+' <span>mix</span>',mode.detail);loadTracks('search',mode.query);$('tracksList').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-function toggleLike(track){if(!track)return;if(hasLike(track.id)){delete state.likes[String(track.id)];flash('Removida das favoritas');}else{state.likes[String(track.id)]=track;flash('Salva nas favoritas ♡');}persistLibrary();renderTracks();updatePlayer();}
-function togglePlaylist(track){if(!track)return;if(inPlaylist(track.id)){state.playlist=state.playlist.filter(t=>String(t.id)!==String(track.id));flash('Removida da playlist');}else{state.playlist.push(track);flash('Adicionada à sua playlist +');}persistLibrary();renderTracks();}
+function toggleLike(track){if(!track||!canEditLibrary())return;if(hasLike(track.id)){delete state.likes[String(track.id)];flash('Removida das favoritas');}else{state.likes[String(track.id)]=track;flash('Salva nas favoritas ♡');}persistLibrary();renderTracks();updatePlayer();}
+function togglePlaylist(track){if(!track||!canEditLibrary())return;if(inPlaylist(track.id)){state.playlist=state.playlist.filter(t=>String(t.id)!==String(track.id));flash('Removida da playlist');}else{state.playlist.push(track);flash('Adicionada à sua playlist +');}persistLibrary();renderTracks();}
 function updatePlayer(){
  const track=state.current;$('playerTitle').textContent=track?track.title:'Escolha uma música';$('playerArtist').textContent=track?track.artist:'Seu flow começa aqui';$('playerArt').innerHTML=track&&safeUrl(track.artwork)?'<img src="'+safe(safeUrl(track.artwork))+'" alt=""/>':'<span>♫</span>';
  $('playerLike').classList.toggle('liked',track?hasLike(track.id):false);$('playerLike').textContent=track&&hasLike(track.id)?'♥':'♡';$('playButton').textContent=state.isPlaying?'❚❚':'▶';$('playButton').setAttribute('aria-label',state.isPlaying?'Pausar':'Reproduzir');$('shuffleButton').classList.toggle('active',state.shuffle);$('repeatButton').classList.toggle('active',state.repeat);$('duration').textContent=time(Number.isFinite(audio.duration)?audio.duration:track?.duration||0);document.title=(track?track.title+' — ':'')+'DEVBEAT — Code Your Rhythm';
@@ -94,16 +132,45 @@ function togglePlay(){if(!state.current){const first=getVisibleTracks()[0];if(fi
 function skip(direction){if(!state.queue.length)return;let next;if(state.shuffle&&state.queue.length>1){next=state.index;while(next===state.index)next=Math.floor(Math.random()*state.queue.length);}else next=(state.index+direction+state.queue.length)%state.queue.length;play(state.queue[next],state.queue);}
 function refresh(){if(state.view==='liked'||state.view==='playlist'||state.view==='history'){renderTracks();return;}if($('searchInput').value.trim())loadTracks('search',$('searchInput').value.trim());else if(state.mode){const m=modes.find(x=>x.id===state.mode);loadTracks('search',m.query);}else loadTracks('trending');}
 function handleSearch(term){state.view='discover';state.mode=null;renderNav();renderModes();$('hero').hidden=true;$('flowSection').hidden=true;setHeading('RESULTADOS DA BUSCA','Sua <span>pesquisa</span>','Músicas e artistas encontrados no Audius.');loadTracks('search',term);}
-function addHistory(track){if(!track)return;const last=state.history[0];if(last&&String(last.id)===String(track.id)&&Date.now()-(last.playedAt||0)<120000)return;state.history=[{...track,playedAt:Date.now()},...state.history.filter(t=>String(t.id)!==String(track.id))].slice(0,80);persistLibrary();if(state.view==='history')renderTracks();}
-function savePlaybackPosition(){if(!state.current)return;state.playback={track:state.current,position:Math.floor(audio.currentTime)||0};updateResume();persistLibrary();}
+function addHistory(track){if(!track||(state.user&&!state.cloudReady))return;const last=state.history[0];if(last&&String(last.id)===String(track.id)&&Date.now()-(last.playedAt||0)<120000)return;state.history=[{...track,playedAt:Date.now()},...state.history.filter(t=>String(t.id)!==String(track.id))].slice(0,80);persistLibrary();if(state.view==='history')renderTracks();}
+function savePlaybackPosition(){if(!state.current||(state.user&&!state.cloudReady))return;state.playback={track:state.current,position:Math.floor(audio.currentTime)||0};updateResume();persistLibrary();}
 function displayAccount(){const user=state.user;$('accountButton').textContent=user?'☁ '+(user.email||'Conta').split('@')[0].slice(0,13):(cloudConfigured?'Entrar / Cadastrar':'☁ Conta');$('accountButton').title=user?'Biblioteca sincronizada':'Acesso a contas e sincronização';$('authLogout').hidden=!user;$('authFields').hidden=!!user;$('authSubmit').hidden=!!user;$('authSwitch').hidden=!!user;$('authReset').hidden=!!user;$('accountTitle').textContent=user?'Minha conta DEVBEAT':'Entrar no DEVBEAT';$('accountNotice').textContent=user?'Sua biblioteca está vinculada a '+(user.email||'esta conta'):cloudConfigured?'Entre ou crie uma conta para salvar músicas na nuvem.':'Recurso preparado. Falta conectar um projeto Supabase dedicado ao DEVBEAT.';if(!cloudConfigured){$('authFields').hidden=true;$('authSubmit').hidden=true;$('authSwitch').hidden=true;$('authReset').hidden=true;}}
 async function onAuthChanged(user,event){if(user&&state.user?.id===user.id&&event!=='INITIAL_SESSION'&&event!=='PASSWORD_RECOVERY')return;const epoch=++state.authEpoch;clearTimeout(state.syncTimer);if(event==='PASSWORD_RECOVERY'){const password=prompt('Defina sua nova senha (mínimo de 8 caracteres):');if(password&&password.length>=8)try{await updatePassword(password);flash('Sua senha foi atualizada.');}catch(e){flash(e.message);}return;}
-  if(!user){state.user=null;state.cloudReady=false;adoptLibrary(guestLibrary);displayAccount();return;}
+  if(!user){
+    state.user=null; state.cloudReady=false; pendingCloudSave=null;
+    clearSessionPlayer(); adoptLibrary(guestLibrary);
+    state.name=guestName; updateName(); displayAccount(); return;
+  }
   if(state.user?.id===user.id&&!['INITIAL_SESSION'].includes(event))return;
-  state.user=user;state.cloudReady=false;displayAccount();try{let lib=await readCloudLibrary(user.id);if(epoch!==state.authEpoch)return;
-    if(!lib){const hasLocal=Object.keys(guestLibrary.favorites).length||guestLibrary.playlists.some(p=>p.tracks.length)||guestLibrary.history.length;if(hasLocal&&confirm('Importar suas músicas e playlists deste dispositivo para a nova conta DEVBEAT?'))lib=guestLibrary;else lib=cleanLibrary({});await writeCloudLibrary(user.id,lib);}
-    if(epoch!==state.authEpoch)return;adoptLibrary(lib);state.cloudReady=true;flash('Biblioteca sincronizada ✓');
-  }catch(e){if(epoch===state.authEpoch)flash('Não foi possível carregar a biblioteca: '+String(e.message||'erro'));}}
+  state.user=user; state.cloudReady=false; pendingCloudSave=null;
+  clearSessionPlayer(); adoptLibrary(cleanLibrary({}));
+  state.name='DEV'; updateName(); displayAccount();
+  try {
+    let lib=await readCloudLibrary(user.id); if(epoch!==state.authEpoch)return;
+    const pending=storage.get(pendingKey(user.id),null);
+    if(pending?.userId===user.id && pending.library){
+      if(confirm('Há alterações musicais deste usuário que não foram sincronizadas. Recuperar e enviar para a nuvem? Isso substituirá a versão online.')){
+        const recovered=cleanLibrary(pending.library);
+        await writeCloudLibrary(user.id,recovered);
+        lib=recovered;
+      }
+      storage.set(pendingKey(user.id),null);
+    }
+    if(!lib){
+      const hasLocal=Object.keys(guestLibrary.favorites).length||guestLibrary.playlists.some(p=>p.tracks.length)||guestLibrary.history.length;
+      lib=hasLocal&&confirm('Importar músicas e playlists deste dispositivo para a nova conta DEVBEAT?')?guestLibrary:cleanLibrary({});
+      await writeCloudLibrary(user.id,lib);
+    }
+    if(epoch!==state.authEpoch)return;
+    const profile=await readCloudProfile(user.id);
+    if(epoch!==state.authEpoch)return;
+    const defaultName=normalizeDisplayName(user.user_metadata?.display_name || user.email?.split('@')[0]);
+    if(!profile) await saveCloudProfile(user.id,defaultName);
+    if(epoch!==state.authEpoch)return;
+    state.name=profile||defaultName; updateName(); adoptLibrary(lib); state.cloudReady=true;
+    flash('Sua biblioteca está sincronizada ✓');
+  }catch(e){if(epoch===state.authEpoch)flash('Não foi possível carregar a biblioteca: '+String(e.message||'erro'));}
+}
 function wireEvents(){
  document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>setView(el.dataset.view)));
  $('modeGrid').addEventListener('click',e=>{const el=e.target.closest('[data-mode]');if(el)selectMode(el.dataset.mode);});
@@ -112,9 +179,9 @@ function wireEvents(){
  $('refreshButton').addEventListener('click',refresh);
  $('loadMoreButton').addEventListener('click',loadMore);
  $('genreFilters').addEventListener('click',e=>{const b=e.target.closest('[data-genre]');if(!b)return;const q=b.dataset.genre;if(q)handleSearch(q);else setView('discover');});
- $('playlistSelect').addEventListener('change',e=>{const p=state.playlists.find(p=>p.id===e.target.value);if(!p)return;state.selectedPlaylistId=p.id;state.playlist=p.tracks;persistLibrary();renderTracks();});
- $('newPlaylistButton').addEventListener('click',()=>{const name=prompt('Nome da nova playlist (até 50 caracteres):');if(!name?.trim())return;if(state.playlists.length>=30){flash('Limite de 30 playlists atingido');return;}const id='list-'+(crypto.randomUUID?.()||Date.now());const p={id,name:name.trim().slice(0,50),tracks:[]};state.playlists.push(p);state.selectedPlaylistId=id;state.playlist=p.tracks;persistLibrary();renderPlaylistSelect();renderTracks();flash('Playlist criada!');});
- $('deletePlaylistButton').addEventListener('click',()=>{if(state.playlists.length===1){flash('Mantenha ao menos uma playlist');return;}if(!confirm('Excluir esta playlist?'))return;state.playlists=state.playlists.filter(p=>p.id!==state.selectedPlaylistId);state.selectedPlaylistId=state.playlists[0].id;state.playlist=state.playlists[0].tracks;persistLibrary();renderPlaylistSelect();renderTracks();});
+ $('playlistSelect').addEventListener('change',e=>{if(!canEditLibrary())return;const p=state.playlists.find(p=>p.id===e.target.value);if(!p)return;state.selectedPlaylistId=p.id;state.playlist=p.tracks;persistLibrary();renderTracks();});
+ $('newPlaylistButton').addEventListener('click',()=>{if(!canEditLibrary())return;const name=prompt('Nome da nova playlist (até 50 caracteres):');if(!name?.trim())return;if(state.playlists.length>=30){flash('Limite de 30 playlists atingido');return;}const id='list-'+(crypto.randomUUID?.()||Date.now());const p={id,name:name.trim().slice(0,50),tracks:[]};state.playlists.push(p);state.selectedPlaylistId=id;state.playlist=p.tracks;persistLibrary();renderPlaylistSelect();renderTracks();flash('Playlist criada!');});
+ $('deletePlaylistButton').addEventListener('click',()=>{if(!canEditLibrary())return;if(state.playlists.length===1){flash('Mantenha ao menos uma playlist');return;}if(!confirm('Excluir esta playlist?'))return;state.playlists=state.playlists.filter(p=>p.id!==state.selectedPlaylistId);state.selectedPlaylistId=state.playlists[0].id;state.playlist=state.playlists[0].tracks;persistLibrary();renderPlaylistSelect();renderTracks();});
  $('resumeButton').addEventListener('click',async()=>{const saved=state.playback;if(!saved?.track)return;await play(saved.track,[saved.track]);if(saved.position>0){const seek=()=>{try{audio.currentTime=Math.min(saved.position,Math.max(0,audio.duration-1));}catch{}};if(audio.readyState>=1)seek();else audio.addEventListener('loadedmetadata',seek,{once:true});}});
  $('startFlowButton').addEventListener('click',()=>{const first=state.tracks[0];if(first)play(first,state.tracks);else selectMode('deep');});
  $('exploreModesButton').addEventListener('click',()=>setView('codeflow'));
@@ -135,9 +202,9 @@ function wireEvents(){
  $('authSwitch').addEventListener('click',()=>{state.authMode=state.authMode==='login'?'register':'login';$('authSubmit').textContent=state.authMode==='login'?'Entrar':'Criar conta';$('authSwitch').textContent=state.authMode==='login'?'Criar uma conta':'Já tenho conta';$('authDisplayName').hidden=state.authMode!=='register';$('authNameLabel').hidden=state.authMode!=='register';$('authPassword').autocomplete=state.authMode==='login'?'current-password':'new-password';});
  $('accountForm').addEventListener('submit',async e=>{e.preventDefault();const email=$('authEmail').value.trim(),password=$('authPassword').value;const btn=$('authSubmit');btn.disabled=true;try{const data=await authAction(state.authMode,email,password,$('authDisplayName').value.trim());$('authMessage').textContent=state.authMode==='register'&&!data.session?'Verifique seu e-mail para confirmar o cadastro.':'Acesso autorizado.';if(data.session)$('accountDialog').close();}catch(err){$('authMessage').textContent=String(err.message||'Não foi possível autenticar');}finally{btn.disabled=false;}});
  $('authReset').addEventListener('click',async()=>{const email=$('authEmail').value.trim();if(!email){$('authMessage').textContent='Informe seu e-mail primeiro.';return;}try{await authAction('reset',email,'');$('authMessage').textContent='Se o endereço estiver cadastrado, você receberá um e-mail de recuperação.';}catch(e){$('authMessage').textContent=String(e.message);}});
- $('authLogout').addEventListener('click',async()=>{try{clearTimeout(state.syncTimer);await flushCloud();await signOut();$('accountDialog').close();}catch(e){flash(String(e.message||'Falha ao sair'));}});
+ $('authLogout').addEventListener('click',async()=>{try{clearTimeout(state.syncTimer);if(!await flushCloud()){flash('Sincronização pendente. Verifique a conexão antes de sair.');return;}await signOut();$('accountDialog').close();}catch(e){flash(String(e.message||'Falha ao sair'));}});
  $('profileButton').addEventListener('click',()=>{$('displayName').value=state.name==='DEV'?'':state.name;$('profileDialog').showModal();});
- $('saveProfileButton').addEventListener('click',()=>{const newName=$('displayName').value.trim().slice(0,30);state.name=newName||'DEV';storage.set('name',state.name);if(state.user)saveCloudProfile(state.user.id,state.name).catch(()=>flash('Perfil ainda não sincronizado'));updateName();flash('Perfil atualizado');});
+ $('saveProfileButton').addEventListener('click',()=>{const newName=$('displayName').value.trim().slice(0,30);state.name=newName||'DEV';if(state.user)saveCloudProfile(state.user.id,state.name).catch(()=>flash('Perfil ainda não sincronizado'));else {guestName=state.name;storage.set('name',state.name);}updateName();flash('Perfil atualizado');});
  audio.addEventListener('play',()=>{state.isPlaying=true;addHistory(state.current);updatePlayer();});audio.addEventListener('pause',()=>{state.isPlaying=false;savePlaybackPosition();updatePlayer();});
  audio.addEventListener('timeupdate',()=>{const p=audio.duration?100*audio.currentTime/audio.duration:0;$('progress').value=String(p);$('progress').style.setProperty('--progress',p+'%');$('currentTime').textContent=time(audio.currentTime);});
  audio.addEventListener('loadedmetadata',updatePlayer);let lastProgressSave=0;audio.addEventListener('timeupdate',()=>{if(Date.now()-lastProgressSave>25000&&state.current&&state.isPlaying){lastProgressSave=Date.now();savePlaybackPosition();}});audio.addEventListener('ended',()=>{if(state.repeat){audio.currentTime=0;audio.play().catch(()=>{});}else skip(1);});
