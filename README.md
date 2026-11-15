@@ -18,6 +18,8 @@
 - ❤️ **Favoritos** e **múltiplas playlists** (criar, selecionar, excluir).
 - 🕒 **Histórico** de até 80 faixas reproduzidas, com última faixa e posição de reprodução armazenadas.
 - 📱 Interface responsiva e uso como visitante sem cadastro.
+- 🎚️ **Player expandido:** clique na capa para abrir a tela Tocando Agora com vinil animado, controles acessíveis e barra de progresso sincronizada.
+- ✨ **Microanimações:** capa, indicadores de execução e espectro visual sincronizado ao estado de play/pause, respeitando a preferência por movimento reduzido. O espectro é decorativo e não mede frequências reais.
 
 **O Supabase exclusivo do DEVBEAT já foi criado e conectado ao frontend.** O login com e-mail/senha depende também da configuração de URLs de redirecionamento e da validação real do fluxo de confirmação de e-mail no painel Supabase. Visitantes continuam usando armazenamento local.
 
